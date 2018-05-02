@@ -1,0 +1,248 @@
+---
+title: "02 Preprocessing and Analysis"
+author: "Jennifer Frehn"
+date: "4/25/2018"
+output: html_document
+---
+
+### Description of Script
+This script loads, preprocesses and conducts descriptive text analysis on the datasets all_f.csv and all_m.csv. It then produces visualizations of the analysis.
+
+### Set Working Directory  
+```{r}
+setwd("/Users/JenniferF/Box Sync/Cal 2018 Spring Courses/jf_PS239T/Final Project Planning/R Files")
+rm(list=ls())
+```
+
+
+### Load Packages 
+```{r results='hide', message=FALSE, warning=FALSE}
+require(tm) # Framework for text mining
+require(ggplot2) # for plotting word frequencies
+require(dplyr)
+```
+
+### Preparing Corpus
+
+##### 1. Getting Sources and Readers 
+```{r results='hide', message=FALSE, warning=FALSE}
+getSources()
+getReaders()
+```
+
+
+##### 2. Read in CSVs
+Reading in csv, with each row being a document, and columns for text and metadata. 
+```{r}
+all_f.df <-read.csv("Data/all_f.csv", header=TRUE) #read in CSV file
+doc_f <- Corpus(VectorSource(all_f.df$newplaintext))
+
+all_m.df <-read.csv("Data/all_m.csv", header=TRUE) #read in CSV file
+doc_m <- Corpus(VectorSource(all_m.df$newplaintext))
+```
+
+##### 3. Sneak Peak at Docs  
+Below we can see the content of specific tweets. 
+```{r}
+# # See the structure of the docs
+# str(doc_f)  # Female doc structure
+# str(doc_m)  # Male doc structure
+
+# Inspect the 200th doc
+# inspect(doc_f[200]) # For female doc
+# inspect(doc_m[200]) # For male doc
+
+ # See content for 280th document
+as.character(doc_f[[280]]) # For female doc
+as.character(doc_m[[280]]) # For male doc 
+```
+
+### Preprocessing
+
+##### Option 1: No Customization  
+The below instructions call DTM on the corpus, using the built in preprocessing steps, including the built in stopwords dictionary. You can leave any out or turn them false. We will be doing Option #2, further below. 
+```{r}
+# dtm_f <- DocumentTermMatrix(doc_f,
+#            control = list(tolower = TRUE,
+#                           removePunctuation = TRUE,
+#                           removeNumbers = TRUE,
+#                           stopwords = TRUE,
+#                           stemming=TRUE))
+# 
+# dtm_m <- DocumentTermMatrix(doc_m,
+#            control = list(tolower = TRUE,
+#                           removePunctuation = TRUE,
+#                           removeNumbers = TRUE,
+#                           stopwords = TRUE,
+#                           stemming=TRUE))
+```
+
+##### Option 2: Customization  
+The below instructions call DTM on the corpus, using <b>custom</b> preprocessing steps.
+```{r}
+# Custom Stopwords
+## Creating a custom list of stopwords that exclude certain words by taking the difference between stopwords("en") and the list of words we want to exclude. In this case, we are excluding variations of the word "you" because we want to do analysis on words associated with the word "you" or variations of it. 
+exceptions <- c("you", "your", "youre", "yourself", "yourselves", "ur", "you're", "you've", "you'll")
+my_stopwords <- setdiff(stopwords("en"), exceptions)
+
+# Creating dataframe for females
+dtm_f <- tm_map(doc_f, removePunctuation) # Removes punctuation
+dtm_f <- tm_map(dtm_f, removeNumbers) # Removes numbers
+dtm_f <- tm_map(dtm_f, content_transformer(tolower)) # Transforms content to lowercase
+dtm_f <- tm_map(dtm_f, removeWords, my_stopwords) # Removes my custom stopwords, created above
+dtm_f <- tm_map(dtm_f, removeWords, c("thedonald", "donald", "realdonaldtrump", "trump")) # Removes additional words
+#dtm_f <- tm_map(dtm_f, stripWhitespace) # This strips white space. We did not do this step.  
+dtm_f <- tm_map(dtm_f, stemDocument) # Stems the words in the document
+
+# Calls the DTM on the corpus (females), while setting the default customization arguments to false, because we already used custom preprocessing arguments
+dtm_f <- DocumentTermMatrix(dtm_f,
+           control = list(tolower = FALSE,
+                          removePunctuation = FALSE,
+                          removeNumbers = FALSE,
+                          stopwords = FALSE,
+                          stemming=FALSE))
+
+# Creating dataframe for males 
+dtm_m <- tm_map(doc_m, removePunctuation) # Removes punctuation
+dtm_m <- tm_map(dtm_m, removeNumbers) # Removes numbers
+dtm_m <- tm_map(dtm_m, content_transformer(tolower)) # Transforms content to lowercase
+dtm_m <- tm_map(dtm_m, removeWords, my_stopwords) # Removes my custom stopwords, created above
+dtm_m <- tm_map(dtm_m, removeWords, c("thedonald", "donald", "realdonaldtrump", "trump")) # Removes additional words
+#dtm_m <- tm_map(dtm_m, stripWhitespace) # This strips white space. We did not do this step.
+dtm_m <- tm_map(dtm_m, stemDocument) # Stems the words in the document
+
+# Calls the DTM on the corpus (males), while setting the default customization arguments to false, because we already used custom preprocessing arguments
+dtm_m <- DocumentTermMatrix(dtm_m,
+           control = list(tolower = FALSE,
+                          removePunctuation = FALSE,
+                          removeNumbers = FALSE,
+                          stopwords = FALSE,
+                          stemming = FALSE))
+```
+
+
+
+### Exploring DTM
+Below show instructions for looking at the structure of the DTM, and taking a sneak peak at specific observations. 
+```{r}
+# # Looking at the structure of our DTM.
+# dim(dtm_f)
+# dim(dtm_m)
+
+# # Showing lines 1-5 for variables 800-810
+# inspect(dtm_f[15:25,800:810])
+# inspect(dtm_m[15:25,800:810])
+```
+
+### Setting Up Frequencies 
+Here we set up some basic frequencies to get a feel for the data. 
+```{r}
+# We can obtain the term frequencies as a vector by converting the document term matrix into a matrix and summing the column counts
+freq_f <- colSums(as.matrix(dtm_f)) # For females
+freq_m <- colSums(as.matrix(dtm_m)) # For males
+
+# By ordering the frequencies we can list the most frequent terms and the least frequent terms:
+ord_f <- order(freq_f) # For females
+ord_m <- order(freq_m) # For males
+
+# Least frequent terms
+# freq_f[head(ord_f, 20)] # For females
+# freq_m[head(ord_m, 20)] # For males
+
+# Most frequent
+freq_f[tail(ord_f, 20)] # For females
+freq_m[tail(ord_m, 20)] # For males
+
+# Frequency of frenquencies
+# head(table(freq_f),15)  # For females
+# tail(table(freq_f),15)  # For males
+# 
+# head(table(freq_m),15)  # For females
+# tail(table(freq_m),15)  # For males
+
+# Plot of frequencies 
+# plot(table(freq_f))  # For females
+# plot(table(freq_m))  # For males
+
+# Use built in package to see what are the most frequent words. Here we are specifying that we want to see words that appear at least 100 times 
+# findFreqTerms(dtm_f, lowfreq=100) # For females
+# findFreqTerms(dtm_m, lowfreq=100) # For males
+```
+
+### Exploring Associations 
+
+##### 1. Finding Associations
+Below we are going to explore words that correlate with the word "you." We are using 0.04 as a lower bound for the correlation. In the dtm, each row is a tweet sent to a senator. This result is saying, "when the word 'you' is in a tweet, these were the other words in that tweet." 
+```{r}
+# Words associated with "you" for females
+findAssocs(dtm_f, "you", 0.04)
+
+# Words associated with "you" for males
+findAssocs(dtm_m, "you", 0.04)
+```
+
+##### 2. Describing Association Results
+I was interested in examining the differences in the positive and negative words associated with "you" for each group - female and male senators. In looking at the results, it does not seem that there are many words that could definitely be considered positive. However, there are many words that can definitely be considered negative. Below is a table showing the negative words most associated with "you" that Twitter users wrote in response to tweets from each group of senators. Words in bold are words that are unique to each list. 
+
+Female Senators  |  Male Senators  
+---------------- | ---------------- 
+**joke** 		     |  hate		   
+disgrac 	  |  hypocrit	 
+**resign**  	  |  disgrac   
+shame		     |  asham		 
+lie		      |  **fool**	     
+hypocrit    |  lie 		   
+stupid	    |  **fuck**		   
+**disgust**	    |  shame		 
+hate		     |  **shit**		   
+**sick**		     |  **racist**		 
+**pathet**		  |  **hell**		   
+mouth		    |  pos		   
+asham		     |  **shut**		   
+**embarrass**	   |  stupid		 
+**liar**		    |  mouth		 
+**idiot**		     |  **damn**		   
+pos		       |  **jerk**		   
+--                |  **crap**		   
+--                |  **wrong**		 
+
+
+### Exploring Frequencies
+Below we will make and save frequency bar graphs for each group (males and females).
+```{r}
+# Plot the most frequent words - Females
+freq_female <- sort(colSums(as.matrix(dtm_f)),decreasing=TRUE) # Sorting
+head(freq_female) # Shows highest frequency words
+wf_f <- data.frame(word=names(freq_female), freq_female=freq_female) # Creating dataframe
+#head(wf_f) # Different way of showing highest frequency words
+
+# The below instructions input a range so that "you" and "your" are not included 
+female_freq_graph <- subset(wf_f, freq_female>2200 & freq_female<6000) %>%
+    ggplot(aes(word, freq_female)) +
+        geom_bar (stat ="identity") +
+        ggtitle("Most Frequent Words in Tweets Sent to Female Senators") +
+        theme(axis.text.x=element_text(angle=45,hjust=1))
+
+# Print graph - Females
+female_freq_graph
+
+# Plot the most frequent words - Males
+freq_male <- sort(colSums(as.matrix(dtm_m)),decreasing=TRUE) # Sorting
+head(freq_male) # Shows highest frequency words
+wf_m <- data.frame(word=names(freq_male), freq_male=freq_male) # Creating dataframe
+#head(wf_m) # Different way of showing highest frequency words
+
+# The below instructions input a range so that "you" and "your" are not included  
+male_freq_graph <- subset(wf_m, freq_male>1200 & freq_male<5000) %>%
+    ggplot(aes(word, freq_male)) +
+        geom_bar (stat ="identity") +
+        ggtitle("Most Frequent Words in Tweets Sent to Male Senators") +
+        theme(axis.text.x=element_text(angle=45,hjust=1)) 
+
+# Print graph - Males
+male_freq_graph
+
+# Saving the graphs 
+ggsave(filename="Results/female_freq_graph.png", plot=female_freq_graph, width = 7, height = 5)
+ggsave(filename="Results/male_freq_graph.png", plot=male_freq_graph, width = 7, height = 5)
+```
