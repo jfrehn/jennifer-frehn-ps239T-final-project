@@ -1,0 +1,298 @@
+---
+title: "3: Structural Topic Modeling"
+author: "Jennifer Frehn"
+date: "4/25/2018"
+output: html_document
+---
+
+### Description of Script  
+This script loads, preprocesses and conducts descriptive structural topic modeling text analysis on the datasets all_f.csv and all_m.csv. It then produces visualizations of these results. 
+
+### Set up Environment
+
+```{r results='hide', message=FALSE, warning=FALSE}
+setwd("/Users/JenniferF/Box Sync/Cal 2018 Spring Courses/jf_PS239T/Final Project Planning/R Files") # YOUR DIRECTORY HERE
+rm(list=ls())
+
+# Load Libraries 
+library(stm) # Structural Topic Modeling package
+library(dplyr)
+```
+
+# STM for Female Senators
+
+### 1. Read in CSVs (Females)
+Reading in csv, with each row being a document, and columns for text and metadata. 
+```{r}
+all_f.df <-read.csv("all_f.csv", header=TRUE) # Read in CSV file
+```
+
+### 2. STM Pre-processing (Females)
+Conducting pre-processing on the dataset using stm's built-in package. 
+```{r}
+# Pre-processing - Female
+temp<-textProcessor(documents=all_f.df$newplaintext, metadata=all_f.df)
+meta<-temp$meta
+vocab<-temp$vocab
+docs<-temp$documents
+out <- prepDocuments(docs, vocab, meta, lower.thresh=10) # removing words that appear in fewer than 10 tweets
+docs<-out$documents
+vocab<-out$vocab
+meta <-out$meta
+```
+
+### 3. Estimate Topic Model (Females)
+
+We're now going to estimate a topic model with 15 topics by regressing topical prevalence on the recipient of the tweet ("reply_to_screen_name").
+
+```{r}
+# Topic model without "max.em.its" argument, so that the argument can run to convergence
+#model <- stm(docs,vocab, 15, prevalence=~reply_to_screen_name, data=meta, seed = 15)
+
+# Topic model with "max.em.its" argument
+#model <- stm(docs,vocab, 15, prevalence=~reply_to_screen_name, data=meta, seed = 15, max.em.its = 50)
+
+# Saving the model 
+#save(model, file = "stm15_f.RData")
+
+# Loading the already-estimated model
+load("stm15_f.RData")
+```
+
+### 4. Explore the Model (Females)
+
+##### 4.1 Topic Quality (Females)
+We use the `topicQuality` command to examine the quality of the topics. The x axis shows how coherent a topic is, and the y axis shows exclusivity. We then save this image as a PDF. 
+```{r message=FALSE, warning=FALSE}
+# Topic Quality plot
+topicQuality(model=model, documents=docs, main="Quality of Tweet Topics Sent to Female Senators")
+
+# Saving Topic Quality plot
+pdf('topic_quality_f.pdf')
+topicQuality(model=model, documents=docs, main="Quality of Tweet Topics Sent to Female Senators")
+dev.off()
+```
+##### 4.2 Top Words & Finding Thoughts (Females)
+Here we will use the `labelTopics` command (which gives the top words for each topic) and the `findThoughts` command (which pulls example tweets that relate to each topic) in order to help us determine labels for each of the 15 topics. First, we will read the top words and determine labels for those topics, then for those topics that still seem unclear, we will examine the actual tweets from those topics to help us determine a label. 
+```{r warning=FALSE}
+# Top Words - Female 
+labelTopics(model)
+
+# Example Docs - Female
+findThoughts(model,texts=meta$newplaintext,n=3,topics=c(4)) # Pulls 3 tweets from topic 4. 
+
+# Labels for female topics 
+labels = c("Shooting Response", "Abortion", "Misc", "DACA", "Guns", "Praise", "Trump", "Hillary & Russia", "Jobs", "Kamala's Ellen Appearance", "Taxes", "Social Issues", "Immigration", "EPA & Mueller",  "Voting")
+```
+
+
+##### 4.3 Image of Topics (Females)
+Below we will generate images of the keywords used in each topic. We will save images of the keywords as PDFs.
+```{r message=FALSE}
+# Generate image of topics
+plot(model, type="labels", topics=c(1:3), main = "Words from Topics 1-3 of Tweets Sent to Female Senators")
+
+# Save image of topics - Female
+pdf('F Topics 1_7.pdf')
+plot(model, type="labels", topics=c(1:7), main = "Words from Topics 1-7 of Tweets Sent to Female Senators")
+dev.off()
+pdf('F Topics 8_15.pdf')
+plot(model, type="labels", topics=c(8:15), main = "Words from Topics 8-15 of Tweets Sent to Female Senators")
+dev.off()
+```
+
+##### 4.4 Word Cloud (Females)
+Here we will examine the word cloud for one of the topics that was similar for both groups: Taxes. We then save this image as a PDF. 
+```{r message=FALSE}
+# Word Cloud
+cloud(model, topic=11)
+
+# Saving word cloud - Females
+pdf('cloud_f_taxes.pdf')
+cloud(model, topic=11)
+dev.off()
+```
+
+### 5. Analyze Topics (Females)
+
+##### 5.1 Topic Prevalence (Females)
+We're now going to see how the topics compare in terms of their prevalence/proportion. We then save this image as a PDF. 
+```{r message=FALSE}
+# Corpus Summary using custom labels created earlier
+plot.STM(model,type="summary",custom.labels=labels,main="Topic Prevalence for Tweets Sent to Female Senators")
+
+# Saving Corpus Summary - Female
+pdf('TopicProportions_F.pdf')
+plot.STM(model,type="summary",custom.labels=labels,main="Topic Prevalence for Tweets Sent to Female Senators")
+dev.off()
+```
+
+##### 5.2 Topic Correlation (Females)
+Below we take a look at how the `topicCorr` command predicts that the topics are correlated. We then save this prediction image as a PDF. 
+```{r message=FALSE}
+# Topic Correlation
+mod.out.corr<-topicCorr(model)
+plot.topicCorr(mod.out.corr, vlabels=labels, vertex.color="white", vertex.label.cex= 1.3, vertex.label.color="blue", vertex.size = 10, main="Topic Correlation for Tweets Sent to Female Senators")
+
+# Saving Topic Correlation - Female
+pdf('TopicCorrelation_F.pdf')
+plot.topicCorr(mod.out.corr, vlabels=labels, vertex.color="white", vertex.label.cex= 1.5, vertex.label.color="blue", vertex.size = 14, main="Topic Correlation for Tweets Sent to Female Senators")
+dev.off()
+```
+
+##### 5.3 Estimating Covariate Effects (Females)
+The below plot shows the effect of the covariate "senator" on the topic of interest. In this case, topic 2. The outcome is the proportion of the reply tweets sent to each senator that is about topic 2.
+```{r message=FALSE}
+
+# Estimate Covariate Effects 
+prep <- estimateEffect(1:15 ~ reply_to_screen_name,model,meta=meta,uncertainty="Global",documents=docs)
+ 
+# Topics over Senator - FEMALE
+plot.estimateEffect(prep,"reply_to_screen_name",method="pointestimate",topics=2,printlegend=TRUE,main="Effect of Covariate 'Senator' on Topic 2: Abortion (for Females)",ci.level=.95,nsims=100, xlab="Proportion of reply tweets sent to each senator about topic 2 (Abortion)")
+
+# Saving Covariate Effects
+pdf('TopicCovariate_F.pdf')
+plot.estimateEffect(prep,"reply_to_screen_name",method="pointestimate",topics=2,printlegend=TRUE,main="Effect of Covariate 'Senator' on Topic 2: Abortion (for Females)",ci.level=.95,nsims=100, xlab="Proportion of reply tweets sent to each senator about topic 2 (Abortion)")
+dev.off()
+```
+
+######################################################################### 
+######################################################################### 
+
+# STM for Male Senators
+
+### 1. Read in CSVs (Males)
+Reading in csv, with each row being a document, and columns for text and metadata. 
+```{r}
+rm(list=ls())
+all_m.df <-read.csv("all_m.csv", header=TRUE) # Read in CSV file
+```
+
+### 2. STM Pre-processing (Males)
+Conducting pre-processing on the dataset using stm's built-in package. 
+```{r}
+# Pre-processing - Male
+temp<-textProcessor(documents=all_m.df$newplaintext, metadata=all_m.df)
+meta<-temp$meta
+vocab<-temp$vocab
+docs<-temp$documents
+out <- prepDocuments(docs, vocab, meta, lower.thresh=10) # removing words that appear in fewer than 10 tweets
+docs<-out$documents
+vocab<-out$vocab
+meta <-out$meta
+```
+
+### 3. Estimate Topic Model (Males)
+
+We're now going to estimate a topic model with 15 topics by regressing topical prevalence on the recipient of the tweet ("reply_to_screen_name").
+
+```{r}
+# Topic model without "max.em.its" argument, so that the argument can run to convergence
+#model <- stm(docs,vocab, 15, prevalence=~reply_to_screen_name, data=meta, seed = 15)
+
+# Topic model with "max.em.its" argument
+#model <- stm(docs,vocab, 15, prevalence=~reply_to_screen_name, data=meta, seed = 15, max.em.its = 50)
+
+# Saving the model 
+#save(model, file = "stm15_m.RData")
+
+# Loading the already-estimated model
+load("stm15_m.RData")
+```
+
+### 4. Explore the Model (Males)
+
+##### 4.1 Topic Quality (Males)
+We use the `topicQuality` command to examine the quality of the topics. The x axis shows how coherent a topic is, and the y axis shows exclusivity. 
+```{r message=FALSE}
+# Topic Quality plot
+topicQuality(model=model, documents=docs, main="Quality of Tweet Topics Sent to Male Senators")
+
+# Saving Topic Quality plot
+pdf('topic_quality_m.pdf')
+topicQuality(model=model, documents=docs, main="Quality of Tweet Topics Sent to Male Senators")
+dev.off()
+```
+
+##### 4.2 Top Words & Finding Thoughts (Males)
+Here we will use the `labelTopics` command (which gives the top words for each topic) and the `findThoughts` command (which pulls example tweets that relate to each topic) in order to help us determine labels for each of the 15 topics. First, we will read the top words and determine labels for those topics, then for those topics that still seem unclear, we will examine the actual tweets from those topics to help us determine a label. 
+```{r message=FALSE, warning=FALSE}
+# Top Words - Male 
+labelTopics(model)
+
+# Example Docs - Male
+findThoughts(model,texts=meta$newplaintext,n=3,topics=c(3)) # Pulls 3 tweets from topic 3. 
+
+# Labels for male topics 
+labels = c("Taxes", "Military", "Hillary & Russia", "Anti-Chuck", "Race", "Mueller", "Misc1", "Misc2", "Anti-Bernie", "Israel", "Gateway Bridge", "Pompeo", "Religion", "McConnell", "Gingrich")
+```
+
+##### 4.3 Image of Topics (Males)
+Below we will generate images of the keywords used in each topic. We will save images of the keywords as PDFs.
+```{r message=FALSE}
+# Generate image of topics
+plot(model, type="labels", topics=c(1:3), main = "Words from Topics 1-3 of Tweets Sent to Male Senators") # Topics 1-3
+
+# Save image of topics - Male
+pdf('M Topics 1_7.pdf')
+plot(model, type="labels", topics=c(1:7), main = "Words from Topics 1-7 of Tweets Sent to Male Senators") # Topics 1-7
+dev.off()
+pdf('M Topics 8_15.pdf')
+plot(model, type="labels", topics=c(8:15), main = "Words from Topics 8-15 of Tweets Sent to Male Senators") # Topics 8-15
+dev.off()
+```
+
+##### 4.4 Word Cloud (Males)
+Here we will examine the word cloud for one of the topics that was similar for both groups: Taxes. 
+```{r message=FALSE}
+# Word Cloud
+cloud(model, topic=1)
+
+# Saving word cloud - Males
+pdf('cloud_m_taxes.pdf')
+cloud(model, topic=1)
+dev.off()
+```
+
+### 5. Analyze Topics (Males)
+
+##### 5.1 Topic Prevalence (Males)
+We're now going to see how the topics compare in terms of their prevalence/proportion. 
+```{r message=FALSE}
+# Corpus Summary using custom labels created earlier
+plot.STM(model,type="summary",custom.labels=labels,main="Topic Prevalence for Tweets Sent to Male Senators")
+
+# Saving Corpus Summary - Male
+pdf('TopicProportions_M.pdf')
+plot.STM(model,type="summary",custom.labels=labels,main="Topic Prevalence for Tweets Sent to Male Senators")
+dev.off()
+```
+
+##### 5.2 Topic Correlation (Males)
+Below we take a look at how the `topicCorr` command predicts that the topics are correlated. We then save this prediction image as a PDF. 
+```{r message=FALSE}
+# Topic Correlation
+mod.out.corr<-topicCorr(model)
+plot.topicCorr(mod.out.corr, vlabels=labels, vertex.color="white", vertex.label.cex= 1, vertex.label.color="blue", vertex.size = 10, main="Topic Correlation for Tweets Sent to Male Senators")
+
+# Saving Topic Correlation - Male
+pdf('TopicCorrelation_M.pdf')
+plot.topicCorr(mod.out.corr, vlabels=labels, vertex.color="white", vertex.label.cex= 1.4, vertex.label.color="blue", vertex.size = 14, main="Topic Correlation for Tweets Sent to Male Senators")
+dev.off()
+```
+
+##### 5.3 Estimating Covariate Effects (Males)
+The below plot shows the effect of the covariate "senator" on the topic of interest. In this case, topic 10. The outcome is the proportion of the reply tweets sent to each senator that is about topic 10.
+```{r message=FALSE}
+# Estimate Covariate Effects 
+prep <- estimateEffect(1:15 ~ reply_to_screen_name,model,meta=meta,uncertainty="Global",documents=docs)
+ 
+# Topics over Senator - MALE
+plot.estimateEffect(prep,"reply_to_screen_name",method="pointestimate",topics=10,printlegend=TRUE,main="Effect of Covariate 'Senator' on Topic 10: Israel (for Males)",ci.level=.95,nsims=100, xlab="Proportion of reply tweets sent to each senator about topic 10 (Israel)")
+
+# Saving Covariate Effects
+pdf('TopicCovariate_M.pdf')
+plot.estimateEffect(prep,"reply_to_screen_name",method="pointestimate",topics=10,printlegend=TRUE,main="Effect of Covariate 'Senator' on Topic 10: Israel (for Males)",ci.level=.95,nsims=100, xlab="Proportion of reply tweets sent to each senator about topic 10 (Israel)")
+dev.off()
+```
+
