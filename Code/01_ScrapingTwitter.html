@@ -511,8 +511,9 @@ all_to_m_df$newplaintext &lt;- gsub(all_to_m_df$plaintext, pattern = &quot;^.*? 
 </section>
 <section id="removing-repetitive-tweets" class="level3">
 <h3>8. Removing Repetitive Tweets</h3>
-<p>During the first round of tweet collection, there was a “Hold Facebook Accountable” advocacy campaign taking place where several of the same tweet was sent to multiple senators. Because these tweets are exact copies, and because they are not adding to the data in terms of differences between how persons address male and female politicians, I am removing them from the dataset. I searched for other type of advocacy campaigns in the tweets but did not find any for the first round. I performed the same search in the second round, and</p>
-<pre class="r"><code>all_tweets_f &lt;- subset(all_to_f_df, newplaintext != &quot;Hold Facebook accountable for abusing our data and censoring our voice. Vote no on the CRA.&quot;)
+<p>During the period of tweet collection, there was a “Hold Facebook Accountable” advocacy campaign taking place where several of the same tweet was sent to multiple senators. Because these tweets are exact copies, and because they are not adding to the data in terms of differences between how persons address male and female politicians, I am removing them from the dataset.</p>
+<pre class="r"><code># Removing repetitive tweets 
+all_tweets_f &lt;- subset(all_to_f_df, newplaintext != &quot;Hold Facebook accountable for abusing our data and censoring our voice. Vote no on the CRA.&quot;)
 all_tweets_f &lt;- subset(all_tweets_f, newplaintext != &quot;Hold Facebook accountable. Tell them they can't continue to steal &amp; abuse our data. Vote no on the CRA.&quot;)
 all_tweets_m &lt;- subset(all_to_m_df, newplaintext != &quot;Hold Facebook accountable for abusing our data and censoring our voice. Vote no on the CRA.&quot;)
 all_tweets_m &lt;- subset(all_tweets_m, newplaintext != &quot;Hold Facebook accountable. Tell them they can't continue to steal &amp; abuse our data. Vote no on the CRA.&quot;)</code></pre>
