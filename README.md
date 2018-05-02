@@ -19,7 +19,7 @@ This provides a list of all files contained in the repo, along with a brief desc
 
 ### Data
 
-1. **RSD files of of original tweets collected**: The below RSD files contain the data collected from the first and second round of tweet gathering through Twitter's API. Each represents tweets that were sent in response to tweets from the senators. Each dataset contains five variables: 1) *created_at*: the date and timestamp of the tweet, 2) *screen_name*: the screen name of the tweet author, 3) *text*: the text of the tweet, 4) *reply_to_screen_name*: the twitter handle for the person the tweet was sent as a reply to, and 5) *plaintext*: the text of the tweet in plain text. 
+1. **RSD files of of original tweets collected**: The below RSD files contain the data collected from the first and second round of tweet gathering through Twitter's API (tweets gathered approximately one week apart). Each represents tweets that were sent in response to tweets from the senators. Each dataset contains five variables: 1) *created_at*: the date and timestamp of the tweet, 2) *screen_name*: the screen name of the tweet author, 3) *text*: the text of the tweet, 4) *reply_to_screen_name*: the twitter handle for the person the tweet was sent as a reply to, and 5) *plaintext*: the text of the tweet in plain text. 
     - bs_to_df1.rds - Tweets sent in response to tweets by @BernieSanders (round 1)
     - ew_to_df1.rds - Tweets sent in response to tweets by @SenWarren (round 1)
     - cb_to_df1.rds - Tweets sent in response to tweets by @CoryBooker (round 1)
