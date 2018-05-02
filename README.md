@@ -2,7 +2,7 @@
 
 ## Description
 
-For this project, I examined social media data. My main interest was in producing descriptive analysis of the differences in users' responses to tweets by male and female U.S. senators. First I used Twitter's API to collect tweets that were sent as replies to 6 senators (3 female and 3 male). I then preprocessed these tweets and conducted text analysis on them. First, I looked at simple frequencies as well as word associations between groups. Next, I conducted structural topic modeling and examined topic quality, topic proportions, topic correlation, and the effect of a covariate on a topic. I also created visualizations of the topics with word clouds and simple topic images. 
+For this project, I examined social media data. My main interest was in producing descriptive analysis of the differences in users' responses to tweets by male and female U.S. senators. First I used Twitter's API to collect tweets that were sent as **replies** to tweets written by 6 senators (3 female and 3 male). I then preprocessed these tweets and conducted text analysis on them. First, I looked at simple frequencies as well as word associations between groups. Next, I conducted structural topic modeling and examined topic quality, topic proportions, topic correlation, and the effect of a covariate on a topic. I  created visualizations of these results, as well images of word clouds and topic keywords. 
 
 
 ## Dependencies
@@ -45,9 +45,9 @@ This provides a list of all files contained in the repo, along with a brief desc
 
 ### Code
 
-1. 01_ScrapingTwitter.Rmd: Collects data from the Twitter API, cleans and merges the data, and exports the data to the files all_f.csv and all_m.csv. 
-2. 02_Preprocessing_and_Analysis.Rmd: Loads, preprocesses and conducts descriptive text analysis on the datasets all_f.csv and all_m.csv. Produces visualizations, found in the Results directory. 
-3. 03_Structural_Topic_Modeling.Rmd: Loads, preprocesses and conducts descriptive structural topic modeling text analysis on the datasets all_f.csv and all_m.csv. Produces visualizations, found in the Results directory.
+1. **01_ScrapingTwitter.Rmd**: Collects data from the Twitter API, cleans and merges the data, and exports the data to the files all_f.csv and all_m.csv. 
+2. **02_Preprocessing_and_Analysis.Rmd**: Loads, preprocesses and conducts descriptive text analysis on the datasets all_f.csv and all_m.csv. Produces visualizations, found in the Results directory. 
+3. **03_Structural_Topic_Modeling.Rmd**: Loads, preprocesses and conducts descriptive structural topic modeling text analysis on the datasets all_f.csv and all_m.csv. Produces visualizations, found in the Results directory.
 
 ### Results
 
@@ -66,8 +66,8 @@ This provides a list of all files contained in the repo, along with a brief desc
 13. TopicProportions_M.pdf: Graph of topic prevalence for tweets sent to male senators. 
 14. TopicCorrelation_F.pdf: Graphic of topic correlation for tweets sent to female senators. 
 15. TopicCorrelation_M.pdf: Graphic of topic correlation for tweets sent to male senators. 
-16. TopicCovariate_F.pdf: Plot showing the effect of the covariate ?senator? on the topic of interest. The outcome is the proportion of the reply tweets sent to each female senator that is about the topic.
-17. TopicCovariate_M.pdf: Plot showing the effect of the covariate ?senator? on the topic of interest. The outcome is the proportion of the reply tweets sent to each male senator that is about the topic.
+16. TopicCovariate_F.pdf: Plot showing the effect of the covariate 'senator' on the topic of interest. The outcome is the proportion of the reply tweets sent to each female senator that is about the topic.
+17. TopicCovariate_M.pdf: Plot showing the effect of the covariate 'senator' on the topic of interest. The outcome is the proportion of the reply tweets sent to each male senator that is about the topic.
 
 
 ## More Information
