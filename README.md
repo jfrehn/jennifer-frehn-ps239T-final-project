@@ -44,10 +44,12 @@ This provides a list of all files contained in the repo, along with a brief desc
 
 
 ### Code
+The below points describe the main code used. In addition, within the "Code" folder, I have included an "Alternate Code" folder where the code is virtually identical to the below code, except for the way in which files are saved and loaded. A more detailed description of the alternate code is located in a README.md file within the "Alternate Code" folder.  
 
 1. **01_ScrapingTwitter.Rmd**: Collects data from the Twitter API, cleans and merges the data, and exports the data to the files all_f.csv and all_m.csv. 
 2. **02_Preprocessing_and_Analysis.Rmd**: Loads, preprocesses and conducts descriptive text analysis on the datasets all_f.csv and all_m.csv. Produces visualizations, found in the Results directory. 
 3. **03_Structural_Topic_Modeling.Rmd**: Loads, preprocesses and conducts descriptive structural topic modeling text analysis on the datasets all_f.csv and all_m.csv. Produces visualizations, found in the Results directory.
+
 
 ### Results
 
