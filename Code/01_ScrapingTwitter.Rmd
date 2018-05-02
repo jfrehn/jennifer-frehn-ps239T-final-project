@@ -1,0 +1,233 @@
+---
+title: "01 Scraping Twitter"
+author: "Jennifer Frehn"
+date: "4/25/2018"
+output: html_document
+---
+
+### Description of Script
+This script collects data from the Twitter API, cleans and merges the data, and exports the data to the files all_f.csv and all_m.csv. 
+
+### Setup Environment and Load Data
+```{r results='hide', message=FALSE, warning=FALSE}
+setwd("/Users/JenniferF/Box Sync/Cal 2018 Spring Courses/jf_PS239T/Final Project Planning/R Files")
+rm(list=ls())
+
+# Load Libraries 
+library(rtweet) # To gather tweets from Twitter API
+library(dplyr)
+library(plyr)
+```
+
+### <span style="color:blue">Note </span>
+ <span style="color:blue">**The file would not knit initially, and the problem seemed to be the Tweet API commands, as they are not able to be carried out without a key. Therefore, I have commented out sections 1-4.**</span> 
+
+
+### 1. Creating API Token
+In creating the token below, put in the name of your API (as you specified on Twitter when setting it up), your consumer key, and your consumer secret. 
+```{r}
+# create_token(app = "[YOUR API NAME HERE]",
+#              consumer_key = "[YOUR KEY HERE]",
+#              consumer_secret = "[YOUR SECRET HERE]")
+```
+
+### 2. Tweet Collection
+Below is code for collecting tweets sent both <b>from</b> senators and <b>to</b> senators. Our main tweets of interest are those sent <b>to</b> senators. However, we also went ahead and gathered tweets sent  <b>from</b> senators just in case we wanted to undrestand what types of tweets were sent from the senators that the tweeters were responding to, as this information would be harder to collect later on for these specific days. This tweet collection was done in two rounds about one week apart.  
+```{r}
+# # Tweet Search Guide:
+# ## search_tweets = Search tweets for the last week.
+# ## "to:BernieSanders" = Searching tweets sent in reply to tweets sent out by the account @BernieSanders
+# ## "from:BernieSanders" = Searching for tweets sent from the account @BernieSanders
+# ## n = 18000 = Number of tweets to retrieve. The limit is 18,000 tweets every 15 minutes.
+# ## type = "recent" = Searching for the most recent tweets.
+# ## include_rts = F = This means you are excluding retweets
+# ## lang = "en" = This means you are searching for only tweets in English
+# 
+# # Bernie Sanders tweets
+# bs_to_tweets <- search_tweets("to:BernieSanders", n = 18000, type = "recent", include_rts = F, lang = "en")
+# bs_from_tweets <- search_tweets("from:BernieSanders", n = 3000, type = "recent", include_rts = T, lang = "en")
+# 
+# # Elizabeth Warren tweets
+# ew_to_tweets <- search_tweets("to:SenWarren", n = 18000, type = "recent", include_rts = F, lang = "en")
+# ew_from_tweets <- search_tweets("from:SenWarren", n = 3000, type = "recent", include_rts = T, lang = "en")
+# 
+# # Cory Booker tweets
+# cb_to_tweets <- search_tweets("to:CoryBooker", n = 18000, type = "recent", include_rts = F, lang = "en")
+# cb_from_tweets <- search_tweets("from:CoryBooker", n = 3000, type = "recent", include_rts = T, lang = "en")
+# 
+# # Kamala Harris Tweets
+# kh_to_tweets <- search_tweets("to:KamalaHarris", n = 18000, type = "recent", include_rts = F, lang = "en")
+# kh_from_tweets <- search_tweets("from:KamalaHarris", n = 3000, type = "recent", include_rts = T, lang = "en")
+# 
+# # Chuck Schumer Tweets
+# cs_to_tweets <- search_tweets("to:SenSchumer", n = 18000, type = "recent", include_rts = F, lang = "en")
+# cs_from_tweets <- search_tweets("from:SenSchumer", n = 3000, type = "recent", include_rts = T, lang = "en")
+# 
+# # Kirsten Gillibrand
+# kg_to_tweets <- search_tweets("to:SenGillibrand", n = 18000, type = "recent", include_rts = F, lang = "en")
+# kg_from_tweets <- search_tweets("from:SenGillibrand", n = 3000, type = "recent", include_rts = T, lang = "en")
+```
+
+### 3. Initial Manipulation  
+Adding a "plain text" column using rtweet and subsetting the variables to make the datasets easier to work with. Each "to" subset contains five variables:   
+1) the date and timestamp of the tweet ("created_at")   
+2) the screen name of the tweet author ("screen_name")  
+3) the text of the tweet ("text")  
+4) the twitter handle for the person the tweet was sent as a reply to ("reply_to_screen_name")   
+5) the text of the tweet in plain text ("plaintext")  
+```{r}
+# # Adding a column that has the tweet in plain text ("TO" tweets)
+# bs_to_tweets$plaintext <- plain_tweets(bs_to_tweets$text)
+# ew_to_tweets$plaintext <- plain_tweets(ew_to_tweets$text)
+# cb_to_tweets$plaintext <- plain_tweets(cb_to_tweets$text)
+# kh_to_tweets$plaintext <- plain_tweets(kh_to_tweets$text)
+# cs_to_tweets$plaintext <- plain_tweets(cs_to_tweets$text)
+# kg_to_tweets$plaintext <- plain_tweets(kg_to_tweets$text)
+# 
+# # Adding a column that has the tweet in plain text ("FROM" tweets)
+# bs_from_tweets$plaintext <- plain_tweets(bs_from_tweets$text)
+# ew_from_tweets$plaintext <- plain_tweets(ew_from_tweets$text)
+# cb_from_tweets$plaintext <- plain_tweets(cb_from_tweets$text)
+# kh_from_tweets$plaintext <- plain_tweets(kh_from_tweets$text)
+# cs_from_tweets$plaintext <- plain_tweets(cs_from_tweets$text)
+# kg_from_tweets$plaintext <- plain_tweets(kg_from_tweets$text)
+# 
+# # Selecting only specific variables ("TO" tweets)
+# bs_t_df <- select(bs_to_tweets, "created_at", "screen_name", "text", "reply_to_screen_name", "plaintext")
+# ew_t_df <- select(ew_to_tweets, "created_at", "screen_name", "text", "reply_to_screen_name", "plaintext")
+# cb_t_df <- select(cb_to_tweets, "created_at", "screen_name", "text", "reply_to_screen_name", "plaintext")
+# kh_t_df <- select(kh_to_tweets, "created_at", "screen_name", "text", "reply_to_screen_name", "plaintext")
+# cs_t_df <- select(cs_to_tweets, "created_at", "screen_name", "text", "reply_to_screen_name", "plaintext")
+# kg_t_df <- select(kg_to_tweets, "created_at", "screen_name", "text", "reply_to_screen_name", "plaintext")
+# 
+# # Selecting only specific variables ("FROM" tweets)
+# bs_f_df <- select(bs_from_tweets, "created_at", "screen_name", "text", "plaintext")
+# ew_f_df <- select(ew_from_tweets, "created_at", "screen_name", "text", "plaintext")
+# cb_f_df <- select(cb_from_tweets, "created_at", "screen_name", "text", "plaintext")
+# kh_f_df <- select(kh_from_tweets, "created_at", "screen_name", "text", "plaintext")
+# cs_f_df <- select(cs_from_tweets, "created_at", "screen_name", "text", "plaintext")
+# kg_f_df <- select(kg_from_tweets, "created_at", "screen_name", "text", "plaintext")
+```
+
+### 4. Saving Original Tweets
+```{r}
+# # Saving Original TO Tweets - Round 1 
+# saveRDS(bs_to_tweets, "bs_to_tweets1_df.rds")
+# saveRDS(ew_to_tweets, "ew_to_tweets1_df.rds")
+# saveRDS(cb_to_tweets, "cb_to_tweets1_df.rds")
+# saveRDS(kh_to_tweets, "kh_to_tweets1_df.rds")
+# saveRDS(cs_to_tweets, "cs_to_tweets1_df.rds")
+# saveRDS(kg_to_tweets, "kg_to_tweets1_df.rds")
+# 
+# # Saving Original TO Tweets - Round 2 
+# saveRDS(bs_to_tweets, "bs_to_tweets2_df.rds") 
+# saveRDS(ew_to_tweets, "ew_to_tweets2_df.rds") 
+# saveRDS(cb_to_tweets, "cb_to_tweets2_df.rds") 
+# saveRDS(kh_to_tweets, "kh_to_tweets2_df.rds") 
+# saveRDS(cs_to_tweets, "cs_to_tweets2_df.rds") 
+# saveRDS(kg_to_tweets, "kg_to_tweets2_df.rds")
+# 
+# # Saving Original FROM Tweets - Round 1
+# saveRDS(bs_from_tweets, "bs_fr_tweets1_df.rds")
+# saveRDS(ew_from_tweets, "ew_fr_tweets1_df.rds")
+# saveRDS(cb_from_tweets, "cb_fr_tweets1_df.rds")
+# saveRDS(kh_from_tweets, "kh_fr_tweets1_df.rds")
+# saveRDS(cs_from_tweets, "cs_fr_tweets1_df.rds")
+# saveRDS(kg_from_tweets, "kg_fr_tweets1_df.rds")
+# 
+# # Saving Original FROM Tweets - Round 2
+# saveRDS(bs_from_tweets, "bs_fr_tweets2_df.rds") 
+# saveRDS(ew_from_tweets, "ew_fr_tweets2_df.rds") 
+# saveRDS(cb_from_tweets, "cb_fr_tweets2_df.rds") 
+# saveRDS(kh_from_tweets, "kh_fr_tweets2_df.rds") 
+# saveRDS(cs_from_tweets, "cs_fr_tweets2_df.rds") 
+# saveRDS(kg_from_tweets, "kg_fr_tweets2_df.rds")
+# 
+# # Saving TO Subsetted Tweets - Round 1
+# saveRDS(bs_t_df, "bs_to_df1.rds")
+# saveRDS(ew_t_df, "ew_to_df1.rds")
+# saveRDS(cb_t_df, "cb_to_df1.rds")
+# saveRDS(kh_t_df, "kh_to_df1.rds")
+# saveRDS(cs_t_df, "cs_to_df1.rds")
+# saveRDS(kg_t_df, "kg_to_df1.rds")
+# 
+# # Saving TO Subsetted Tweets - Round 2
+# saveRDS(bs_t_df, "bs_to_df2.rds") 
+# saveRDS(ew_t_df, "ew_to_df2.rds") 
+# saveRDS(cb_t_df, "cb_to_df2.rds") 
+# saveRDS(kh_t_df, "kh_to_df2.rds") 
+# saveRDS(cs_t_df, "cs_to_df2.rds") 
+# saveRDS(kg_t_df, "kg_to_df2.rds")
+# 
+# # Saving FROM Subsetted Tweets - Round 1
+# saveRDS(bs_f_df, "bs_fr_df1.rds")
+# saveRDS(ew_f_df, "ew_fr_df1.rds")
+# saveRDS(cb_f_df, "cb_fr_df1.rds")
+# saveRDS(kh_f_df, "kh_fr_df1.rds")
+# saveRDS(cs_f_df, "cs_fr_df1.rds")
+# saveRDS(kg_f_df, "kg_fr_df1.rds")
+#
+# # Saving FROM Subsetted Tweets - Round 2
+# saveRDS(bs_f_df, "bs_fr_df2.rds") 
+# saveRDS(ew_f_df, "ew_fr_df2.rds") 
+# saveRDS(cb_f_df, "cb_fr_df2.rds") 
+# saveRDS(kh_f_df, "kh_fr_df2.rds") 
+# saveRDS(cs_f_df, "cs_fr_df2.rds") 
+# saveRDS(kg_f_df, "kg_fr_df2.rds") 
+```
+
+
+### 5. Loading Tweet Files 
+```{r}
+# Loading Round 1
+bs_to_df1 <- readRDS('bs_to_df1.rds')
+ew_to_df1 <- readRDS('ew_to_df1.rds')
+cb_to_df1 <- readRDS('cb_to_df1.rds')
+kh_to_df1 <- readRDS('kh_to_df1.rds')
+cs_to_df1 <- readRDS('cs_to_df1.rds')
+kg_to_df1 <- readRDS('kg_to_df1.rds')
+
+# Loading Round 2
+bs_to_df2 <- readRDS('bs_to_df2.rds')
+ew_to_df2 <- readRDS('ew_to_df2.rds')
+cb_to_df2 <- readRDS('cb_to_df2.rds')
+kh_to_df2 <- readRDS('kh_to_df2.rds')
+cs_to_df2 <- readRDS('cs_to_df2.rds')
+kg_to_df2 <- readRDS('kg_to_df2.rds')
+```
+
+### 6. Creating Combined Dataframes  
+```{r}
+# Combining all "to" tweets into one dataframe for females and one for males
+all_to_f_df <- rbind(ew_to_df1, kh_to_df1, kg_to_df1, ew_to_df2, kh_to_df2, kg_to_df2) # All females
+all_to_m_df <- rbind(bs_to_df1, cb_to_df1, cs_to_df1, bs_to_df2, cb_to_df2, cs_to_df2) # All males
+```
+
+### 7. Removing First Twitter Handle 
+In the tweets, because these are replies, the first word is always the senator's twitter handle, such as "@BernieSanders." We are interested in removing these first handles from the dataset so that they do not influence the word counts we will be doing. 
+```{r}
+# Removing "@SenHandle" from tweets: According to angel-on-earth Joshua Ulrich on Stack Overflow, the regular expression "^.*? " below matches the beginning of the string (^), any character (.) repeated zero or more times (*), and a space ( ). The ? makes the match "lazy" so that it only matches are far as the first space. That match is replaced with nothing (). See ?regex for more details and references.  
+
+all_to_f_df$newplaintext <- gsub(all_to_f_df$plaintext, pattern = "^.*? ", replacement = "") # For females
+all_to_m_df$newplaintext <- gsub(all_to_m_df$plaintext, pattern = "^.*? ", replacement = "") # For males
+```
+
+### 8. Removing Repetitive Tweets
+During the first round of tweet collection, there was a "Hold Facebook Accountable" advocacy campaign taking place where several of the same tweet was sent to multiple senators. Because these tweets are exact copies, and because they are not adding to the data in terms of differences between how persons address male and female politicians, I am removing them from the dataset. I searched for other type of advocacy campaigns in the tweets but did not find any for the first round. I performed the same search in the second round, and 
+
+```{r}
+all_tweets_f <- subset(all_to_f_df, newplaintext != "Hold Facebook accountable for abusing our data and censoring our voice. Vote no on the CRA.")
+all_tweets_f <- subset(all_tweets_f, newplaintext != "Hold Facebook accountable. Tell them they can't continue to steal & abuse our data. Vote no on the CRA.")
+all_tweets_m <- subset(all_to_m_df, newplaintext != "Hold Facebook accountable for abusing our data and censoring our voice. Vote no on the CRA.")
+all_tweets_m <- subset(all_tweets_m, newplaintext != "Hold Facebook accountable. Tell them they can't continue to steal & abuse our data. Vote no on the CRA.")
+```
+
+### 9. Saving Cleaned Tweets
+```{r}
+# Saving combined male and female tweet dataframes to CSV and RDS files 
+write.csv(all_tweets_f, "all_f.csv") # Females
+write.csv(all_tweets_m, "all_m.csv") # Males
+saveRDS(all_tweets_f, "all_f.rds")  # Females
+saveRDS(all_tweets_m, "all_m.rds") # Males
+```
+
